@@ -1,0 +1,8 @@
+{
+  "name": "InternSmart: AI-Powered Internship Platform",
+  "description": "A modern, skill-based internship platform connecting students and recruiters with AI resume analysis and gamified coding challenges.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile for both candidates and recruiters",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["candidate", "recruiter", "admin"] },
+        "bio": { "type": "string" },
+        "domainInterests": { "type": "array", "items": { "type": "string" } },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "github": { "type": "string" },
+        "portfolio": { "type": "string" },
+        "codingScore": { "type": "number" },
+        "points": { "type": "number" },
+        "challengesSolved": { "type": "number" },
+        "interests": { "type": "array", "items": { "type": "string" } },
+        "specialization": { "type": "string" },
+        "atsScore": { "type": "number" },
+        "resumeUrl": { "type": "string" },
+        "resumeData": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Internship": {
+      "title": "Internship Listing",
+      "description": "Internship opportunity posted by recruiters",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "recruiterId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "requiredSkills": { "type": "array", "items": { "type": "string" } },
+        "duration": { "type": "string" },
+        "stipend": { "type": "string" },
+        "hashtags": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["recruiterId", "companyName", "title"]
+    },
+    "Application": {
+      "title": "Internship Application",
+      "description": "Application submitted by a candidate",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "internshipId": { "type": "string" },
+        "candidateId": { "type": "string" },
+        "recruiterId": { "type": "string" },
+        "companyName": { "type": "string" },
+        "internshipTitle": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "appliedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["internshipId", "candidateId", "recruiterId", "status", "companyName", "internshipTitle"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Verified certificate uploaded by candidate",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "candidateId": { "type": "string" },
+        "title": { "type": "string" },
+        "issuer": { "type": "string" },
+        "url": { "type": "string" },
+        "verifiedHash": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["candidateId", "title", "url"]
+    },
+    "CodingChallenge": {
+      "title": "Coding Challenge",
+      "description": "Algorithm problem for candidates",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+        "points": { "type": "number" },
+        "testCases": { "type": "array" }
+      },
+      "required": ["title", "difficulty", "points"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User profiles" },
+    "/internships/{internshipId}": { "schema": "Internship", "description": "Internship listings" },
+    "/applications/{applicationId}": { "schema": "Application", "description": "Internship applications" },
+    "/certificates/{certificateId}": { "schema": "Certificate", "description": "User certificates" },
+    "/challenges/{challengeId}": { "schema": "CodingChallenge", "description": "Coding challenges" }
+  }
+}

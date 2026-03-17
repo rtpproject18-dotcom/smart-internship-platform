@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role == role;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') || 
+        (request.auth.token.email == "rtpproject18@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['candidate', 'recruiter', 'admin'];
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if true; 
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isAuthenticated() && (
+        isOwner(userId) || 
+        isAdmin() || 
+        (hasRole('recruiter') && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points', 'codingScore', 'challengesSolved']))
+      );
+    }
+
+    // Internships
+    match /internships/{internshipId} {
+      allow read: if true; // Public listings
+      allow create: if hasRole('recruiter') || isAdmin();
+      allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.recruiterId == request.auth.uid);
+    }
+
+    // Applications
+    match /applications/{applicationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.candidateId == request.auth.uid || 
+        resource.data.recruiterId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if hasRole('candidate') || isAdmin();
+      allow update: if isAuthenticated() && (
+        resource.data.recruiterId == request.auth.uid || 
+        resource.data.candidateId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Certificates
+    match /certificates/{certificateId} {
+      allow read: if true; // Publicly verifiable
+      allow create: if isAuthenticated() && request.resource.data.candidateId == request.auth.uid;
+      allow delete: if isOwner(resource.data.candidateId) || isAdmin();
+    }
+
+    // Challenges
+    match /challenges/{challengeId} {
+      allow read: if true; // Publicly viewable
+      allow write: if isAdmin();
+    }
+  }
+}
